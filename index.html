@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Power Infra - Tendering Bot Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .keyword-tag { background: #e2e8f0; border-radius: 4px; padding: 2px 8px; font-size: 11px; margin: 2px; display: inline-block; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <nav class="bg-blue-900 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wider">LASER POWER INFRA - TENDER MONITOR</h1>
+            <div class="text-sm">Status: <span class="text-green-400">● Live Monitoring</span></div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+            <h2 class="font-bold text-gray-700 mb-2">Active Product Keywords:</h2>
+            <div id="keywords-container" class="flex flex-wrap text-gray-600">
+                </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700 text-left text-xs uppercase font-semibold">
+                        <th class="px-5 py-3 border-b-2">Tender ID / Ref</th>
+                        <th class="px-5 py-3 border-b-2">Organization</th>
+                        <th class="px-5 py-3 border-b-2">Product/Description</th>
+                        <th class="px-5 py-3 border-b-2">Type</th>
+                        <th class="px-5 py-3 border-b-2">Due Date</th>
+                        <th class="px-5 py-3 border-b-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tender-body" class="text-gray-800">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Aapke provided keywords list
+        const rawKeywords = "CONDUCTOR,CABLE,WIRES,WIRE,LTXLPE,HTXLPE,XLPE,AAAC,ACSR,HT POWER CABLE,LT POWER CABLE,LTAB,LTABC,LT ABC,HTAB,HTABC,HT ABC,AB CABLE,AERIAL BUNCHED CABLE,MOOSE,PANTHER,WOLF,ZEBRA,WEASEL,ACSR RABBIT,RABBIT,SQUIRREL,RACOON,11 KV,33 KV,3.3 KV,1.1 KV,HTLS,Line work";
+        const keywords = rawKeywords.split(',');
+
+        // Displaying Keywords as Tags
+        const kwContainer = document.getElementById('keywords-container');
+        keywords.forEach(kw => {
+            const span = document.createElement('span');
+            span.className = 'keyword-tag';
+            span.innerText = kw.trim();
+            kwContainer.appendChild(span);
+        });
+
+        // Dummy Data (In Real World: Yeh data API ya Python scraper se aayega)
+        const mockTenders = [
+            { id: "GEM/2026/B/102", org: "PGCIL (Govt)", desc: "Supply of ACSR MOOSE Conductor for Transmission Line", type: "National", date: "20-03-2026" },
+            { id: "T-INT-8892", org: "Dubai Electricity & Water", desc: "Procurement of 33KV HTXLPE Power Cables", type: "International", date: "15-04-2026" },
+            { id: "PVT/WB/001", org: "Adani Power (Pvt)", desc: "Laying of 1.1KV LTAB Aerial Bunched Cables", type: "Private", date: "10-03-2026" },
+            { id: "SEB-RAJ-21", org: "Rajasthan Vidyut (Govt)", desc: "Supply of AAAC & ACSR RABBIT Conductors", type: "National", date: "25-03-2026" }
+        ];
+
+        function loadTenders() {
+            const tbody = document.getElementById('tender-body');
+            tbody.innerHTML = "";
+            
+            mockTenders.forEach(t => {
+                const row = `
+                    <tr class="hover:bg-gray-50 border-b border-gray-200">
+                        <td class="px-5 py-4 text-sm font-medium text-blue-600">${t.id}</td>
+                        <td class="px-5 py-4 text-sm">${t.org}</td>
+                        <td class="px-5 py-4 text-sm">
+                            <span class="font-bold text-gray-700">${t.desc}</span>
+                        </td>
+                        <td class="px-5 py-4 text-sm">
+                            <span class="px-2 py-1 rounded text-xs ${t.type === 'International' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}">${t.type}</span>
+                        </td>
+                        <td class="px-5 py-4 text-sm text-red-600 font-bold">${t.date}</td>
+                        <td class="px-5 py-4 text-sm">
+                            <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">View Details</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        window.onload = loadTenders;
+    </script>
+</body>
+</html>
