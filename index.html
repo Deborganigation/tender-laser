@@ -3,95 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laser Power Infra - Tendering Bot Dashboard</title>
+    <title>Laser Power Infra - AI Tender Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .keyword-tag { background: #e2e8f0; border-radius: 4px; padding: 2px 8px; font-size: 11px; margin: 2px; display: inline-block; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+        .win-gradient { background: linear-gradient(90deg, #4ade80 var(--percent), #e2e8f0 var(--percent)); }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-slate-50 font-sans">
 
-    <nav class="bg-blue-900 text-white p-4 shadow-lg">
+    <header class="bg-[#002B5B] text-white p-4 sticky top-0 z-50 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-wider">LASER POWER INFRA - TENDER MONITOR</h1>
-            <div class="text-sm">Status: <span class="text-green-400">● Live Monitoring</span></div>
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-500 p-2 rounded-full text-blue-900 font-bold">LP</div>
+                <h1 class="text-xl font-bold uppercase">Laser Power - Tender AI</h1>
+            </div>
+            <div class="flex gap-4 items-center">
+                <span class="text-xs bg-green-500 px-2 py-1 rounded">LIVE SCANNING</span>
+                <i class="fas fa-bell"></i>
+            </div>
         </div>
-    </nav>
+    </header>
 
-    <div class="container mx-auto p-6">
-        
-        <div class="bg-white p-4 rounded-lg shadow mb-6">
-            <h2 class="font-bold text-gray-700 mb-2">Active Product Keywords:</h2>
-            <div id="keywords-container" class="flex flex-wrap text-gray-600">
-                </div>
+    <main class="container mx-auto p-4 lg:p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600">
+                <h3 class="text-gray-500 text-sm">New Tenders Today</h3>
+                <p class="text-3xl font-bold">24</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <h3 class="text-gray-500 text-sm">High Win Probability (>80%)</h3>
+                <p class="text-3xl font-bold text-green-600">07</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                <h3 class="text-gray-500 text-sm">Active Bids</h3>
+                <p class="text-3xl font-bold">12</p>
+            </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full leading-normal">
-                <thead>
-                    <tr class="bg-gray-200 text-gray-700 text-left text-xs uppercase font-semibold">
-                        <th class="px-5 py-3 border-b-2">Tender ID / Ref</th>
-                        <th class="px-5 py-3 border-b-2">Organization</th>
-                        <th class="px-5 py-3 border-b-2">Product/Description</th>
-                        <th class="px-5 py-3 border-b-2">Type</th>
-                        <th class="px-5 py-3 border-b-2">Due Date</th>
-                        <th class="px-5 py-3 border-b-2">Action</th>
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
+            <table class="w-full text-left">
+                <thead class="bg-gray-100 text-gray-600 text-xs uppercase">
+                    <tr>
+                        <th class="p-4">Authority & Product</th>
+                        <th class="p-4">Value (Est.)</th>
+                        <th class="p-4 text-center">Win Chance</th>
+                        <th class="p-4">Closing Date</th>
+                        <th class="p-4 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody id="tender-body" class="text-gray-800">
+                <tbody id="tender-list">
                     </tbody>
             </table>
+        </div>
+    </main>
+
+    <div id="detailModal" class="modal flex items-center justify-center">
+        <div class="bg-white w-11/12 md:w-3/4 lg:w-1/2 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
+                <h2 id="modalTitle" class="text-xl font-bold">Tender Details</h2>
+                <button onclick="closeModal()" class="text-2xl">&times;</button>
+            </div>
+            <div class="p-8">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <p class="text-sm text-gray-500">Organization Type: <span id="mOrgType" class="font-bold"></span></p>
+                        <h3 id="mProduct" class="text-2xl font-bold text-gray-800 mt-1"></h3>
+                    </div>
+                    <div class="text-right">
+                        <div id="mWinPercentCircle" class="text-3xl font-black text-green-600"></div>
+                        <p class="text-[10px] uppercase font-bold text-gray-400">Winning Probability</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl mb-6 grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase">EMD Required</p>
+                        <p id="mEMD" class="font-semibold"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase">Eligibility Check</p>
+                        <p class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Laser Power Eligible</p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="font-bold mb-2">Why this is reliable for us?</h4>
+                    <ul id="mReliability" class="text-sm text-gray-600 space-y-2">
+                        </ul>
+                </div>
+
+                <div class="flex flex-wrap gap-4 pt-6 border-t">
+                    <button class="bg-red-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-red-700 transition">
+                        <i class="fas fa-file-pdf"></i> Download NIT/SBD
+                    </button>
+                    <button class="bg-blue-900 text-white px-6 py-3 rounded-lg font-bold flex-1 hover:bg-blue-800 shadow-lg">
+                        GENERATE BID DOCUMENTS (AI)
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Aapke provided keywords list
-        const rawKeywords = "CONDUCTOR,CABLE,WIRES,WIRE,LTXLPE,HTXLPE,XLPE,AAAC,ACSR,HT POWER CABLE,LT POWER CABLE,LTAB,LTABC,LT ABC,HTAB,HTABC,HT ABC,AB CABLE,AERIAL BUNCHED CABLE,MOOSE,PANTHER,WOLF,ZEBRA,WEASEL,ACSR RABBIT,RABBIT,SQUIRREL,RACOON,11 KV,33 KV,3.3 KV,1.1 KV,HTLS,Line work";
-        const keywords = rawKeywords.split(',');
-
-        // Displaying Keywords as Tags
-        const kwContainer = document.getElementById('keywords-container');
-        keywords.forEach(kw => {
-            const span = document.createElement('span');
-            span.className = 'keyword-tag';
-            span.innerText = kw.trim();
-            kwContainer.appendChild(span);
-        });
-
-        // Dummy Data (In Real World: Yeh data API ya Python scraper se aayega)
-        const mockTenders = [
-            { id: "GEM/2026/B/102", org: "PGCIL (Govt)", desc: "Supply of ACSR MOOSE Conductor for Transmission Line", type: "National", date: "20-03-2026" },
-            { id: "T-INT-8892", org: "Dubai Electricity & Water", desc: "Procurement of 33KV HTXLPE Power Cables", type: "International", date: "15-04-2026" },
-            { id: "PVT/WB/001", org: "Adani Power (Pvt)", desc: "Laying of 1.1KV LTAB Aerial Bunched Cables", type: "Private", date: "10-03-2026" },
-            { id: "SEB-RAJ-21", org: "Rajasthan Vidyut (Govt)", desc: "Supply of AAAC & ACSR RABBIT Conductors", type: "National", date: "25-03-2026" }
+        const tenders = [
+            { id: 1, org: "WBSEDCL", product: "11KV HTXLPE Power Cable (3Core)", value: "₹4.5 Cr", date: "15-Mar-2026", win: 92, emd: "₹9,00,000", type: "Govt / State", 
+              points: ["Laser Power has existing approval in WBSEDCL", "Raw material price matches our current inventory", "Distance for logistics is low"] },
+            { id: 2, org: "KPTL (International)", product: "ACSR Moose Conductor - 400KM", value: "$2.1M", date: "22-Apr-2026", win: 65, emd: "Bank Guarantee", type: "International / Pvt", 
+              points: ["High competition from Chinese manufacturers", "Specific packing requirements for sea freight", "Technical specs match our 2025 testing report"] },
+            { id: 3, org: "TATA POWER", product: "AAAC Rabbit Conductors", value: "₹85 Lakhs", date: "10-Mar-2026", win: 88, emd: "Exempted (Vendor Base)", type: "Private / Ltd", 
+              points: ["Direct OEM requirement", "Standard sizing ensures fast delivery", "Laser Power is a preferred vendor"] }
         ];
 
-        function loadTenders() {
-            const tbody = document.getElementById('tender-body');
-            tbody.innerHTML = "";
-            
-            mockTenders.forEach(t => {
-                const row = `
-                    <tr class="hover:bg-gray-50 border-b border-gray-200">
-                        <td class="px-5 py-4 text-sm font-medium text-blue-600">${t.id}</td>
-                        <td class="px-5 py-4 text-sm">${t.org}</td>
-                        <td class="px-5 py-4 text-sm">
-                            <span class="font-bold text-gray-700">${t.desc}</span>
-                        </td>
-                        <td class="px-5 py-4 text-sm">
-                            <span class="px-2 py-1 rounded text-xs ${t.type === 'International' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}">${t.type}</span>
-                        </td>
-                        <td class="px-5 py-4 text-sm text-red-600 font-bold">${t.date}</td>
-                        <td class="px-5 py-4 text-sm">
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">View Details</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
+        function renderTenders() {
+            const container = document.getElementById('tender-list');
+            container.innerHTML = tenders.map(t => `
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="p-4">
+                        <div class="text-xs text-blue-600 font-bold uppercase">${t.org}</div>
+                        <div class="font-semibold text-gray-800">${t.product}</div>
+                    </td>
+                    <td class="p-4 font-mono font-medium">${t.value}</td>
+                    <td class="p-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: ${t.win}%"></div>
+                        </div>
+                        <div class="text-[10px] text-right mt-1 font-bold text-gray-500">${t.win}% Win Chance</div>
+                    </td>
+                    <td class="p-4 text-sm font-bold text-red-500">${t.date}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="openDetails(${t.id})" class="text-blue-900 border border-blue-900 px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-900 hover:text-white transition">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        window.onload = loadTenders;
+        function openDetails(id) {
+            const t = tenders.find(item => item.id === id);
+            document.getElementById('modalTitle').innerText = "Tender Analysis: " + t.org;
+            document.getElementById('mProduct').innerText = t.product;
+            document.getElementById('mOrgType').innerText = t.type;
+            document.getElementById('mEMD').innerText = t.emd;
+            document.getElementById('mWinPercentCircle').innerText = t.win + "%";
+            
+            const relList = document.getElementById('mReliability');
+            relList.innerHTML = t.points.map(p => `<li><i class="fas fa-check text-green-500 mr-2"></i> ${p}</li>`).join('');
+
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('detailModal')) closeModal();
+        }
+
+        renderTenders();
     </script>
 </body>
 </html>
